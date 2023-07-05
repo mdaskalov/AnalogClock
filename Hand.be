@@ -12,9 +12,13 @@ class Hand: lv.canvas
 
     var height = line_cap + radius + (secHand ? ofs : 0) + line_cap
 
-    var bufsize = 3 * width * height # LV_IMG_PX_SIZE_ALPHA_BYTE * w * h
+    var bufsize = ((lv.COLOR_DEPTH / 8) + 1) * width * height # LV_IMG_PX_SIZE_ALPHA_BYTE * w * h
     self.buf = bytes()
     self.buf.resize(bufsize)
+    if size(self.buf) != bufsize
+      print(format('Out of memory: Allocated %d of %d bytes for the face buffer',size(self.buf),bufsize))
+      return
+    end
     self.set_buffer(self.buf, width, height, lv.IMG_CF_TRUE_COLOR_ALPHA)
     self.fill_bg(lv.color(lv.COLOR_BLACK), lv.OPA_TRANSP)
     self.update_layout();

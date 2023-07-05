@@ -7,9 +7,13 @@ class Face: lv.canvas
   def init(scr, width, height, roundFace, mirrored, font)
     super(self,lv.canvas).init(scr)
 
-    var bufsize = 4*width*height #(lv.COLOR_DEPTH / 8) * width * height # 16bit
+    var bufsize = (lv.COLOR_DEPTH / 8) * width * height # 16bit
     self.buf = bytes()
     self.buf.resize(bufsize)
+    if size(self.buf) != bufsize
+      print(format('Out of memory: Allocated %d of %d bytes for the face buffer',size(self.buf),bufsize))
+      return
+    end
     self.set_buffer(self.buf, width, height, lv.IMG_CF_TRUE_COLOR)
     self.fill_bg(lv.color(lv.COLOR_BLACK), lv.OPA_COVER)
     self.update_layout()
