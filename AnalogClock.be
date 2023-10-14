@@ -28,7 +28,7 @@ class AnalogClock
     var sExt = Face.round(radius / 6.0)
     var fontSize = Face.round(radius / 6.0)
 
-    var font = self.load_font(fontName, fontSize)
+    var font = self.load_font(fontName, fontSize, lv.montserrat_font)
 
     var mirrored = self.flip < 0
     self.face = Face(lv.scr_act(), width, height, roundFace, mirrored, font)
@@ -55,27 +55,24 @@ class AnalogClock
     end
   end
 
-  def load_font(fontName, fontSize)
+  def load_font(fontName, fontSize, fallbackFont)
     var font
     if fontName
       try
         font = lv.load_freetype_font(fontName, fontSize, 0)
       except .. as e, v
-        print(format('Freetype font(%s, %d) load failed',fontName, fontSize))
+        print(format('Freetype font(%s, %d) unavailable', fontName, fontSize))
       end
     end
-    var montserratSize = 0
-    var montserratSizes = [10, 14, 20, 28]
-    for i:0..size(montserratSizes)-1
-      if montserratSizes[i] <= fontSize
-        montserratSize = montserratSizes[i]
-      else
+    var fallbackSize = fontSize
+    while fallbackSize > 0
+      try
+        font = fallbackFont(fallbackSize)
+        print(format('Using fallbackFont(%d)', fallbackSize))
         break
+      except .. as e, v
       end
-    end
-    print(format('use montserrat_font(%d)', montserratSize))
-    if montserratSize != 0
-      font = lv.montserrat_font(montserratSize)
+      fallbackSize -= 1
     end
     return font
   end
