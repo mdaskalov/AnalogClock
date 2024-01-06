@@ -1,9 +1,11 @@
 # AnalogClock
 Tasmota LVGL smooth moving analog clock written in berry
 ## Installation
-Create Tasmota application:
+Tasmota appication (.tapp) will be build automatically for each relase. You can download the file under Actions / Release Build
+
+To build it manually, execute following in the repo directory
 ```
-rm -f AnalogClock.tapp; zip -j -0 AnalogClock.tapp AnalogClock/*.be
+rm -f AnalogClock.tapp; zip -j -0 AnalogClock.tapp src/*.be
 ```
 ## Configuration
 Following parameter could be configured in the `persist` module:
