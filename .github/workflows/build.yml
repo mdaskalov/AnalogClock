@@ -1,0 +1,23 @@
+name: Release Build
+
+# Controls when the workflow will run
+on:
+  release:
+    types: [published]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Run a one-line script
+        run: rm -f AnalogClock.tapp; zip -j -0 AnalogClock.tapp src/*.be
+
+      - name: Upload a Build Artifact
+        uses: actions/upload-artifact@v3.1.3
+        with:
+          name: AnalogClock.tapp
+          path: AnalogClock.tapp
+          retention-days: 90
