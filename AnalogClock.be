@@ -1,6 +1,7 @@
 import Face
 import Hand
 import persist
+import math
 
 class AnalogClock
   var face, hour, min, sec
@@ -11,7 +12,7 @@ class AnalogClock
     lv.start()
     var scr = lv.scr_act()
 
-    self.flip = persist.find('clock_mirrored', false) ? -1 : 1
+    var mirrored = persist.find('clock_mirrored', false)
     var fontName = persist.find('clock_font')
     var roundFace = persist.find('clock_round_face', false)
     var width = persist.find('clock_width', scr.get_width())
@@ -30,16 +31,12 @@ class AnalogClock
 
     var font = self.load_font(fontName, fontSize, lv.montserrat_font)
 
-    var mirrored = self.flip < 0
-    self.face = Face(lv.scr_act(), width, height, roundFace, mirrored, font)
-    self.hour = Hand(self.face, hmWidth, hRad, hmOfs, false)
-    self.min = Hand(self.face, hmWidth, mRad, hmOfs, false)
-    self.sec = Hand(self.face, sWidth, sRad, sExt, true)
+    self.face = Face(scr, width, height, roundFace, mirrored, font)
+    self.hour = Hand(scr, hmWidth, hRad, hmOfs, false)
+    self.min = Hand(scr, hmWidth, mRad, hmOfs, false)
+    self.sec = Hand(scr, sWidth, sRad, sExt, true)
     self.millis_adj = 0
-
-    self.face.center()
-
-    #self.set_time(10, 10, 0)
+    self.flip = mirrored ? -1 : 1
 
     tasmota.add_driver(self)
   end
@@ -50,9 +47,10 @@ class AnalogClock
 
   def del()
     tasmota.remove_driver(self)
-    if self.face
-      self.face.del()
-    end
+    if self.sec self.sec.del() end
+    if self.min self.min.del() end
+    if self.hour self.hour.del() end
+    if self.face self.face.del() end
   end
 
   def load_font(fontName, fontSize, fallbackFont)
