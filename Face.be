@@ -1,25 +1,17 @@
 import math
 
-class Face: lv.canvas
-  var buf
+class Face
+  var scr
+  var points, lines, labels
   var ofsX, ofsY
 
   def init(scr, width, height, roundFace, mirrored, font)
-    super(self,lv.canvas).init(scr)
-
-    var bufsize = (lv.COLOR_DEPTH / 8) * width * height # 16bit
-    self.buf = bytes()
-    self.buf.resize(bufsize)
-    if size(self.buf) != bufsize
-      print(format('Out of memory: Allocated %d of %d bytes for the face buffer',size(self.buf),bufsize))
-      return
-    end
-    self.set_buffer(self.buf, width, height, lv.IMG_CF_TRUE_COLOR)
-    self.fill_bg(lv.color(lv.COLOR_BLACK), lv.OPA_COVER)
-    self.update_layout()
-
-    self.ofsX = self.get_width() / 2.0
-    self.ofsY = self.get_height() / 2.0
+    self.scr = scr
+    self.points = []
+    self.lines = []
+    self.labels = []
+    self.ofsX = scr.get_width() / 2.0
+    self.ofsY = scr.get_height() / 2.0
 
     var radius = (width < height ? width : height) / 2.0
 
@@ -36,14 +28,10 @@ class Face: lv.canvas
     var horOfs = roundFace ? faceRadius : faceHeight
     var verOfs = roundFace ? faceRadius : faceWidth
 
-    var line_dsc = lv.draw_line_dsc()
-    lv.draw_line_dsc_init(line_dsc)
-    line_dsc.color = lv.color(lv.COLOR_WHITE)
-
-    self.drawLine(line_dsc, 0, -horOfs, 0, longLineLen - horOfs, longLineWidth)
-    self.drawLine(line_dsc, 0, horOfs, 0, horOfs - longLineLen, longLineWidth)
-    self.drawLine(line_dsc, verOfs, 0, verOfs - longLineLen, 0, longLineWidth)
-    self.drawLine(line_dsc, -verOfs, 0, longLineLen - verOfs, 0, longLineWidth)
+    self.drawLine(0, -horOfs, 0, longLineLen - horOfs, longLineWidth)
+    self.drawLine(0, horOfs, 0, horOfs - longLineLen, longLineWidth)
+    self.drawLine(verOfs, 0, verOfs - longLineLen, 0, longLineWidth)
+    self.drawLine(-verOfs, 0, longLineLen - verOfs, 0, longLineWidth)
 
     if font
       self.drawNumber(0, digitsOfs - horOfs, 12, mirrored, font)
@@ -82,10 +70,10 @@ class Face: lv.canvas
         digitPosY = self.intersectY(t, faceWidth - digitsOfs, faceHeight - digitsOfs)
       end
 
-      self.drawLine(line_dsc, startPtX, startPtY, endPtX, endPtY, lineWidth)
-      self.drawLine(line_dsc, -startPtX, startPtY, -endPtX, endPtY, lineWidth)
-      self.drawLine(line_dsc, startPtX, -startPtY, endPtX, -endPtY, lineWidth)
-      self.drawLine(line_dsc, -startPtX, -startPtY, -endPtX, -endPtY, lineWidth)
+      self.drawLine(startPtX, startPtY, endPtX, endPtY, lineWidth)
+      self.drawLine(-startPtX, startPtY, -endPtX, endPtY, lineWidth)
+      self.drawLine(startPtX, -startPtY, endPtX, -endPtY, lineWidth)
+      self.drawLine(-startPtX, -startPtY, -endPtX, -endPtY, lineWidth)
 
       # print(format("i: %d ang: %f point: %d,%d - %d,%d", i, ang, rightBottomStart.getX(), rightBottomStart.getY(), leftTopStart.getX(), leftTopStart.getY() ))
 
@@ -97,6 +85,19 @@ class Face: lv.canvas
         self.drawNumber(-digitPosX, -digitPosY, hour + 9, mirrored, font)
       end
       ang += inc
+    end
+  end
+
+  def deinit()
+    self.del()
+  end
+
+  def del()
+    for i:0..size(self.lines)-1
+      self.lines[i].del()
+    end
+    for i:0..size(self.labels)-1
+      self.labels[i].del()
     end
   end
 
@@ -114,20 +115,24 @@ class Face: lv.canvas
     return y > height ? height : y
   end
 
-  def point(x, y)
-    var p = lv.point()
-    p.x = self.round(x + self.ofsX)
-    p.y = self.round(y + self.ofsY)
-    return p
-  end
-
-  def drawLine(dsc, x1, y1, x2, y2, width)
-    dsc.width = width < 1 ? 1 : width
-    self.draw_line(lv.lv_point_arr([self.point(x1,y1), self.point(x2,y2)]), 2, dsc)
+  def drawLine(x1, y1, x2, y2, width)
+    var line = lv.line(self.scr)
+    var p1 = lv.point()
+    p1.x = self.round(x1 + self.ofsX)
+    p1.y = self.round(y1 + self.ofsY)
+    var p2 = lv.point()
+    p2.x = self.round(x2 + self.ofsX)
+    p2.y = self.round(y2 + self.ofsY)
+    var pa = lv.lv_point_arr([p1, p2])
+    self.points.push(pa)
+    line.set_style_line_width(width < 1 ? 1 : width, lv.PART_MAIN | lv.STATE_DEFAULT)
+    line.set_style_line_color(lv.color(lv.COLOR_WHITE), lv.PART_MAIN | lv.STATE_DEFAULT)
+    line.set_points(pa, 2)
+    self.lines.push(line)
   end
 
   def drawNumber(x, y, num, mirrored, font)
-    var label = lv.label(self)
+    var label = lv.label(self.scr)
     label.add_flag(lv.OBJ_FLAG_FLOATING)
     label.align(lv.ALIGN_CENTER, self.round(x), self.round(y))
     if font
@@ -140,6 +145,7 @@ class Face: lv.canvas
       if num == 2 txt = "01" end
     end
     label.set_text(txt)
+    self.labels.push(label)
   end
 
 end
