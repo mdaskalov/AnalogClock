@@ -62,6 +62,10 @@ class AnalogClock
         print(format('Freetype font(%s, %d) unavailable', fontName, fontSize))
       end
     end
+    if font != nil
+      return font
+    end
+    self.flip = 1
     var fallbackSize = fontSize
     while fallbackSize > 0
       try
