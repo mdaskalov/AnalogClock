@@ -38,6 +38,10 @@ class AnalogClock
     self.millis_adj = 0
     self.flip = mirrored ? -1 : 1
 
+    self.hour.set_style_line_color(lv.color(lv.COLOR_WHITE), lv.PART_MAIN | lv.STATE_DEFAULT)
+    self.min.set_style_line_color(lv.color(lv.COLOR_WHITE), lv.PART_MAIN | lv.STATE_DEFAULT)
+    self.sec.set_style_line_color(lv.color(lv.COLOR_RED), lv.PART_MAIN | lv.STATE_DEFAULT)
+
     tasmota.add_driver(self)
   end
 
@@ -81,10 +85,11 @@ class AnalogClock
 
   def set_time(hour, min, sec)
     self.millis_adj = tasmota.millis() % 60000 - sec * 1000
-    var min_ang = 60 * min + sec
-    var hour_ang = 300 * (hour % 12) + min * 5 + sec / 12
-    self.min.set_angle(min_ang * self.flip)
-    self.hour.set_angle(hour_ang * self.flip)
+    # 360/12 hours + 360/12/60 mins 360/12/60/60 secs 360/60/1000
+    var min_ang = 6.0 * min + sec / 10.0
+    var hour_ang = 30.0 * (hour % 12) + min / 2.0 + sec / 120.0
+    self.min.set_angle(min_ang)
+    self.hour.set_angle(hour_ang)
   end
 
   def every_second()
@@ -95,8 +100,8 @@ class AnalogClock
 
   def every_50ms()
     var millis = tasmota.millis() % 60000 - self.millis_adj
-    var sec_ang = 60 * millis / 1000
-    self.sec.set_angle(sec_ang * self.flip)
+    var sec_ang = millis * 6 / 1000
+    self.sec.set_angle(sec_ang)
   end
 
 end
