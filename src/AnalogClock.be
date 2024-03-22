@@ -81,8 +81,8 @@ class AnalogClock
 
   def set_time(hour, min, sec)
     self.millis_adj = tasmota.millis() % 60000 - sec * 1000
-    var min_ang = 60 * min + sec
-    var hour_ang = 300 * (hour % 12) + min * 5 + sec / 12
+    var min_ang = 60.0 * min + sec
+    var hour_ang = 300.0 * (hour % 12) + min * 5.0 + sec / 12.0
     self.min.set_angle(min_ang * self.flip)
     self.hour.set_angle(hour_ang * self.flip)
   end
@@ -95,7 +95,7 @@ class AnalogClock
 
   def every_50ms()
     var millis = tasmota.millis() % 60000 - self.millis_adj
-    var sec_ang = 60 * millis / 1000
+    var sec_ang = millis * 6.0 / 1000.0
     self.sec.set_angle(sec_ang * self.flip)
   end
 
