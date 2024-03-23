@@ -138,8 +138,8 @@ class Hand: lv.obj
       h = -h
     end
 
-    h += 2 * self.line_cap
-    w += 2 * self.line_cap
+    h += 2 * self.line_cap + 1
+    w += 2 * self.line_cap + 1
 
     if h < self.thick_width h = self.thick_width end
     if w < self.thick_width w = self.thick_width end
