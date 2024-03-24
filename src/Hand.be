@@ -11,6 +11,8 @@ class Hand: lv.obj
   var thick_width, thin_width
   var for_sec
 
+  var sin, cos
+
   # calculated (ang)
   var hand_x, hand_y
   var ofs_x, ofs_y
@@ -40,6 +42,14 @@ class Hand: lv.obj
 
     self.pos_x = parent.get_width() / 2
     self.pos_y = parent.get_height() / 2
+
+    self.sin = []
+    self.cos = []
+
+    for ang:0..359
+      self.sin.push(self.round(1000 * math.sin(ang * 2 * math.pi / 360.0)))
+      self.cos.push(self.round(1000 * -math.cos(ang * 2 * math.pi / 360.0)))
+    end
 
     self.set_angle(0)
 
@@ -111,15 +121,15 @@ class Hand: lv.obj
     return real(val) - int(val) > 0.5 ? int(math.ceil(val)) : int(math.floor(val))
   end
 
-  def set_angle(ang)
-    var rad = ang * 2 * math.pi / 360.0
-    var sin = math.sin(rad)
-    var cos = -math.cos(rad)
+  def set_angle(a)
+    var ang = a % 360
+    var sin = self.sin[ang]
+    var cos = self.cos[ang]
 
-    self.ofs_x = self.round(self.ofs_rad * sin)
-    self.ofs_y = self.round(self.ofs_rad * cos)
-    self.hand_x = self.round(self.hand_rad * sin)
-    self.hand_y = self.round(self.hand_rad * cos)
+    self.ofs_x = self.ofs_rad * sin / 1000
+    self.ofs_y = self.ofs_rad * cos / 1000
+    self.hand_x = self.hand_rad * sin / 1000
+    self.hand_y = self.hand_rad * cos / 1000
 
     var for_sec_x = self.for_sec ? self.ofs_x : 0
     var for_sec_y = self.for_sec ? self.ofs_y : 0
