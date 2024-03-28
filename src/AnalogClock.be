@@ -4,7 +4,7 @@ import persist
 import math
 
 class AnalogClock
-  var face, hour, min, sec
+  var face, h_hand, m_hand, s_hand
   var millis_adj
   var flip
 
@@ -32,9 +32,9 @@ class AnalogClock
     var font = self.load_font(fontName, fontSize, lv.montserrat_font)
 
     self.face = Face(scr, width, height, roundFace, mirrored, font)
-    self.hour = Hand(scr, hmWidth, hRad, hmOfs, false)
-    self.min = Hand(scr, hmWidth, mRad, hmOfs, false)
-    self.sec = Hand(scr, sWidth, sRad, sExt, true)
+    self.h_hand = Hand(scr, hmWidth, hRad, hmOfs, false)
+    self.m_hand = Hand(scr, hmWidth, mRad, hmOfs, false)
+    self.s_hand = Hand(scr, sWidth, sRad, sExt, true)
     self.millis_adj = 0
     self.flip = mirrored ? -1 : 1
 
@@ -47,9 +47,9 @@ class AnalogClock
 
   def del()
     tasmota.remove_driver(self)
-    if self.sec self.sec.del() end
-    if self.min self.min.del() end
-    if self.hour self.hour.del() end
+    if self.s_hand self.s_hand.del() end
+    if self.m_hand self.m_hand.del() end
+    if self.h_hand self.h_hand.del() end
     if self.face self.face.del() end
   end
 
@@ -79,24 +79,26 @@ class AnalogClock
     return font
   end
 
-  def set_time(hour, min, sec)
-    self.millis_adj = tasmota.millis() % 60000 - sec * 1000
-    var min_ang = 60 * min + sec
-    var hour_ang = 300 * (hour % 12) + min * 5 + sec / 12
-    self.min.set_angle(min_ang * self.flip)
-    self.hour.set_angle(hour_ang * self.flip)
-  end
-
   def every_second()
     var rtc = tasmota.rtc()['local']
     var now = tasmota.time_dump(rtc)
-    self.set_time(now['hour'], now['min'], now['sec'])
+    var hour = now['hour']
+    var min = now['min']
+    var sec = now['sec']
+    self.millis_adj = tasmota.millis() % 60000 - sec * 1000
+    # 3600/12h + 3600/12/60m + 3600/12/60/60s + 3600/12/60/60/1000ms
+    var h_ang = (hour % 12) * 300 + min * 5  + sec / 12
+    # 3600/60m + 3600/60/60s + 3600/60/60/1000ms
+    var m_ang = min * 60 + sec
+    self.h_hand.set_angle(h_ang * self.flip)
+    self.m_hand.set_angle(m_ang * self.flip)
   end
 
   def every_50ms()
     var millis = tasmota.millis() % 60000 - self.millis_adj
-    var sec_ang = 60 * millis / 1000
-    self.sec.set_angle(sec_ang * self.flip)
+    # 3600/60s + 3600/60/1000ms
+    var s_ang = millis * 6 / 100
+    self.s_hand.set_angle(s_ang * self.flip)
   end
 
 end
