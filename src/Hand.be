@@ -1,7 +1,7 @@
 import math
 
-class Hand: lv.canvas
-  var buf
+class Hand: lv.obj
+  var area, line_dsc, arc_dsc
 
   def init(scr, width, hand_rad, ofs_rad, for_sec)
     super(self,lv.canvas).init(scr)
@@ -74,6 +74,45 @@ class Hand: lv.canvas
     self.set_pos(pos_x, pos_y)
     self.set_pivot(center_x, center_y)
     self.set_antialias(true)
+  end
+
+  def set_angle(a)
+    var sin = 0
+    var cos = -1000
+
+    self.ofs_x = self.ofs_rad * sin / 1000
+    self.ofs_y = self.ofs_rad * cos / 1000
+    self.hand_x = self.hand_rad * sin / 1000
+    self.hand_y = self.hand_rad * cos / 1000
+
+    var for_sec_x = self.for_sec ? self.ofs_x : 0
+    var for_sec_y = self.for_sec ? self.ofs_y : 0
+
+    var pos_x = self.pos_x - self.line_cap - for_sec_x
+    var pos_y = self.pos_y - self.line_cap - for_sec_y
+    var w = self.hand_x + for_sec_x
+    var h = self.hand_y + for_sec_y
+
+    if self.hand_x < 0
+      pos_x += self.hand_x + for_sec_x
+      w = -w
+    end
+    if self.hand_y < 0
+      pos_y += self.hand_y + for_sec_y
+      h = -h
+    end
+
+    h += 2 * self.line_cap + 1
+    w += 2 * self.line_cap + 1
+
+    if h < self.thick_width h = self.thick_width end
+    if w < self.thick_width w = self.thick_width end
+
+    self.set_style_transform_rotation(a * 10, 0)
+    self.set_pos(pos_x, pos_y)
+    self.set_size(w, h)
+    # self.refresh_self_size();
+    self.invalidate()
   end
 
 end
