@@ -3,6 +3,7 @@ import Disc
 
 class Hand
   var center, ofs, hand
+  var points_thick, points_thin
   var line_center, line_ofs, line_hand
   var disc
   var sec_hand
@@ -47,7 +48,8 @@ class Hand
       self.line_hand.set_style_line_width(thin_width, lv.PART_MAIN | lv.STATE_DEFAULT)
       self.line_hand.set_style_line_color(lv.color(lv.COLOR_RED), lv.PART_MAIN | lv.STATE_DEFAULT)
       self.line_hand.set_style_line_rounded(true, lv.PART_MAIN | lv.STATE_DEFAULT)
-      self.line_hand.set_points(lv.point_arr([self.ofs, self.hand]),2)
+      self.points_thin = lv.point_arr([self.ofs, self.hand])
+      self.line_hand.set_points(self.points_thin,2)
       self.disc.set_style_line_color(lv.color(lv.COLOR_RED), lv.PART_MAIN | lv.STATE_DEFAULT)
     else
       self.rad_hand = radius - line_cap
@@ -63,7 +65,8 @@ class Hand
       self.line_hand.set_style_line_width(thick_width, lv.PART_MAIN | lv.STATE_DEFAULT)
       self.line_hand.set_style_line_color(lv.color(lv.COLOR_WHITE), lv.PART_MAIN | lv.STATE_DEFAULT)
       self.line_hand.set_style_line_rounded(true, lv.PART_MAIN | lv.STATE_DEFAULT)
-      self.line_hand.set_points(lv.point_arr([self.ofs, self.hand]),2)
+      self.points_thick = lv.point_arr([self.ofs, self.hand])
+      self.line_hand.set_points(self.points_thin,2)
       self.disc.set_style_line_color(lv.color(lv.COLOR_WHITE), lv.PART_MAIN | lv.STATE_DEFAULT)
     end
   end
@@ -84,7 +87,7 @@ class Hand
   end
 
   def set_angle(ang)
-    var rad = ang * 2 * math.pi / 360.0
+    var rad = ang * 2 * math.pi / 3600.0
     var sin = math.sin(rad)
     var cos = -math.cos(rad)
     if self.center && self.hand && self.ofs && self.line_hand && self.line_ofs
