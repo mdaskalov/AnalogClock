@@ -13,7 +13,7 @@ class AnalogClock
     var scr = lv.scr_act()
 
     var mirrored = persist.find('clock_mirrored', false)
-    var fontName = persist.find('clock_font')
+    var fontName = persist.find('clock_face_font')
     var roundFace = persist.find('clock_round_face', false)
     var width = persist.find('clock_width', scr.get_width())
     var height = persist.find('clock_height', scr.get_height())
