@@ -14,6 +14,7 @@ class AnalogClock
 
     var mirrored = persist.find('clock_mirrored', false)
     var fontName = persist.find('clock_face_font')
+    var digits = persist.find('clock_face_digits', 3)
     var roundFace = persist.find('clock_round_face', false)
     var width = persist.find('clock_width', scr.get_width())
     var height = persist.find('clock_height', scr.get_height())
@@ -23,15 +24,15 @@ class AnalogClock
     var mRad = Face.round(radius - (radius / 8.0))
     var hRad = Face.round(mRad * 3.0 / 5.0)
     var hmWidth = Face.round(radius / 15.0)
-    var hmOfs = Face.round(radius / 6.0)
-    var sRad = Face.round(radius - (radius / 20.0))
+    var hmOfs = Face.round(radius / 7.0)
+    var sRad = Face.round(radius - (radius / 40.0))
     var sWidth = Face.round(radius / 20.0)
     var sExt = Face.round(radius / 6.0)
-    var fontSize = Face.round(radius / 6.0)
+    var fontSize = Face.round(radius / 4.0)
 
     var font = self.load_font(fontName, fontSize, lv.montserrat_font)
 
-    self.face = Face(scr, width, height, roundFace, mirrored, font)
+    self.face = Face(scr, width, height, roundFace, digits, mirrored, font)
     self.h_hand = Hand(scr, hmWidth, hRad, hmOfs, false)
     self.m_hand = Hand(scr, hmWidth, mRad, hmOfs, false)
     self.s_hand = Hand(scr, sWidth, sRad, sExt, true)
@@ -39,18 +40,6 @@ class AnalogClock
     self.flip = mirrored ? -1 : 1
 
     tasmota.add_driver(self)
-  end
-
-  def deinit()
-    self.del()
-  end
-
-  def del()
-    tasmota.remove_driver(self)
-    if self.s_hand self.s_hand.del() end
-    if self.m_hand self.m_hand.del() end
-    if self.h_hand self.h_hand.del() end
-    if self.face self.face.del() end
   end
 
   def load_font(fontName, fontSize, fallbackFont)
@@ -90,17 +79,41 @@ class AnalogClock
     var h_ang = (hour % 12) * 300 + min * 5  + sec / 12
     # 3600/60m + 3600/60/60s + 3600/60/60/1000ms
     var m_ang = min * 60 + sec
-    self.h_hand.set_angle(h_ang * self.flip)
-    self.m_hand.set_angle(m_ang * self.flip)
+    if self.s_hand && self.m_hand
+      self.h_hand.set_angle(h_ang * self.flip)
+      self.m_hand.set_angle(m_ang * self.flip)
+    end
   end
 
   def every_50ms()
     var millis = tasmota.millis() % 60000 - self.millis_adj
     # 3600/60s + 3600/60/1000ms
     var s_ang = millis * 6 / 100
-    self.s_hand.set_angle(s_ang * self.flip)
+    if self.s_hand
+      self.s_hand.set_angle(s_ang * self.flip)
+    end
+  end
+
+  def unload()
+    tasmota.remove_driver(self)
+    if self.s_hand
+      self.s_hand.del()
+      self.s_hand = nil
+    end
+    if self.m_hand
+      self.m_hand.del()
+      self.m_hand = nil
+    end
+    if self.h_hand
+      self.h_hand.del()
+      self.h_hand = nil
+    end
+    if self.face
+      self.face.del()
+      self.face = nil
+    end
   end
 
 end
 
-return AnalogClock
+return AnalogClock()

@@ -1,0 +1,8 @@
+{
+  "name": "AnalogClock",
+  "version": "0x01000000",
+  "description": "Smooth moving analog clock",
+  "author": "Milko Daskalov",
+  "min_tasmota": "0x0F010002",
+  "features": "display"
+}
